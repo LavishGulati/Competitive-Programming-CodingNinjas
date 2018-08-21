@@ -2,19 +2,11 @@
 using namespace std;
 
 int findMinVertex(int *weight, bool *isVisited, int n){
-    int minVertex;
-    int i = 0;
-    while(i < n){
-        if(!isVisited[i]){
+    int minVertex = -1;
+    for(int i = 0; i < n; i++){
+        if(!isVisited[i] && (minVertex == -1 || weight[i] < weight[minVertex])){
             minVertex = i;
-            break;
         }
-        i++;
-    }
-
-    while(i < n){
-        if(!isVisited[i] && weight[i] < weight[minVertex]) minVertex = i;
-        i++;
     }
 
     return minVertex;
@@ -40,7 +32,6 @@ int main(){
     int *parent = new int[n];
     int *weight = new int[n];
     bool *isVisited = new bool[n];
-
     for(int i = 0; i < n; i++){
         weight[i] = INT_MAX;
         isVisited[i] = false;
@@ -48,15 +39,17 @@ int main(){
 
     parent[0] = -1;
     weight[0] = 0;
+
     for(int i = 0; i < n; i++){
         int minVertex = findMinVertex(weight, isVisited, n);
-        cout << minVertex << endl;
         isVisited[minVertex] = true;
 
         for(int j = 0; j < n; j++){
-            if(!isVisited[j] && input[minVertex][j] != -1 && input[minVertex][j] < weight[j]){
-                weight[j] = input[minVertex][j];
-                parent[j] = minVertex;
+            if(input[minVertex][j] > 0 && !isVisited[j]){
+                if(input[minVertex][j] < weight[j]){
+                    weight[j] = input[minVertex][j];
+                    parent[j] = minVertex;
+                }
             }
         }
     }
