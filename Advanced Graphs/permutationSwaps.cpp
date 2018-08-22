@@ -1,37 +1,89 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-set< set<int> *> *getComponent(vecotr<int> *graph, int n){
-    bool *visited = new bool[n];
-    for(int i = 0; i < )
+void dfs(vector<int> *graph, int start, bool *isVisited, unordered_set<int> *part){
+    isVisited[start] = true;
+    part->insert(start);
+
+    for(int i = 0; i < graph[start].size(); i++){
+        int next = graph[start][i];
+        if(!isVisited[next]){
+            dfs(graph, next, isVisited, part);
+        }
+    }
+}
+
+unordered_set< unordered_set<int> *> *getComponent(vector<int> *graph, int n){
+    bool *isVisited = new bool[n];
+    for(int i = 0; i < n; i++) isVisited[i] = false;
+
+    unordered_set< unordered_set<int> * > *component = new unordered_set< unordered_set<int> * >();
+    for(int i = 0; i < n; i++){
+        if(!isVisited[i]){
+            unordered_set<int> *part = new unordered_set<int>();
+            dfs(graph, i, isVisited, part);
+            component->insert(part);
+        }
+    }
+
+    return component;
 }
 
 int main(){
+    int flag;
     int t;
     cin >> t;
     while(t--){
+        flag = 1;
         int n, m;
         cin >> n >> m;
 
-        int *p = new int[n+1];
-        for(int i = 1; i <= n; i++) cin >> p[i];
+        int *p = new int[n];
+        for(int i = 0; i < n; i++){
+            int x;
+            cin >> x;
+            p[i] = x-1;
+        }
 
         int *q = new int[n+1];
-        for(int i = 1; i <= n; i++) cin >> q[i];
+        for(int i = 0; i < n; i++){
+            int x;
+            cin >> x;
+            q[i] = x-1;
+        }
 
-        vector<int> *graph = new vector<int>[n+1];
+        vector<int> *graph = new vector<int>[n];
         for(int i = 0; i < m; i++){
             int a, b;
             cin >> a >> b;
-            graph[i].push_back(j);
-            graph[j].push_back(i);
+            graph[a-1].push_back(b-1);
+            graph[b-1].push_back(a-1);
         }
 
-        set< set<int> *> *component = getComponent(graph, n);
+        unordered_set< unordered_set<int> * > *component = getComponent(graph, n);
 
-        delete[] component;
-        delete[] graph;
-        delete[] q;
-        delete[] p;
+        // for(unordered_set< unordered_set<int> * >::iterator i = component->begin(); i != component->end(); i++){
+        //     for(unordered_set<int>::iterator j = (*i)->begin(); j != (*i)->end(); j++){
+        //         cout << (*j)+1 << " ";
+        //     }
+        //     cout << endl;
+        // }
+
+        for(unordered_set< unordered_set<int> * >::iterator i = component->begin(); i != component->end(); i++){
+            set<int> setA;
+            set<int> setB;
+            for(unordered_set<int>::iterator j = (*i)->begin(); j != (*i)->end(); j++){
+                setA.insert(p[*j]);
+                setB.insert(q[*j]);
+            }
+
+            if(setA != setB){
+                flag = 0;
+                cout << "NO" << endl;
+                break;
+            }
+        }
+
+        if(flag) cout << "YES" << endl;
     }
 }
