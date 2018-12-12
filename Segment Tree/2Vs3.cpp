@@ -3,108 +3,74 @@ using namespace std;
 typedef long long ll;
 #define pb push_back
 
-void buildTree(int *tree, string &input, int si, int ei, int id){
-    if(si == ei){
-        // cout << si << " " << ei << " " << tree[id] << endl;
-        tree[id] = (input[si] == '0' ? 0 : 1);
-        return;
-    }
+int power[100001];
 
-    int mid = (si+ei)/2;
-    buildTree(tree, input, si, mid, 2*id);
-    buildTree(tree, input, mid+1, ei, 2*id+1);
+void buildPower(){
+    power[0] = 1;
+    for(int i = 1; i < 100001; i++) power[i] = (power[i-1]*2)%3;
+}
 
-    if(tree[2*id] == 0) tree[id] = tree[2*id+1];
-    else if(tree[2*id] == 1){
-        if((ei-mid)%2 == 0) tree[id] = (1+tree[2*id+1])%3;
-        else tree[id] = (2+tree[2*id+1])%3;
-    }
+void buildTree(int *tree, int *input, int si, int ei, int id){
+    if(si == ei) tree[id] = input[si];
     else{
-        if((ei-mid)%2 == 0) tree[id] = (2+tree[2*id+1])%3;
-        else tree[id] = (1+tree[2*id+1])%3;
-    }
+        int mid = (si+ei)/2;
+        buildTree(tree, input, si, mid, 2*id);
+        buildTree(tree, input, mid+1, ei, 2*id+1);
 
-    // cout << si << " " << ei << " " << tree[id] << endl;
+        tree[id] = (power[ei-mid]*tree[2*id] + tree[2*id+1])%3;
+    }
 }
 
 int query(int *tree, int si, int ei, int id, int left, int right){
-    int mid = (si+ei)/2;
+    if(si > right || ei < left) return 0;
+    else if(si >= left && ei <= right) return (tree[id]*power[right-ei])%3;
 
-    if(si > right || ei < left){
-        return 0;
-    }
-    else if(si >= left && ei <= right){
-        return tree[id];
-    }
-    else if(right <= mid) return query(tree, si, mid, 2*id, left, right);
-    else if(left > mid) return query(tree, mid+1, ei, 2*id+1, left, right);
+    int mid = (si+ei)/2;
 
     int x = query(tree, si, mid, 2*id, left, right);
     int y = query(tree, mid+1, ei, 2*id+1, left, right);
-
-    if(x == 0) return y;
-    else if(x == 1){
-        if((ei-mid)%2 == 0) return (1+y)%3;
-        else return (2+y)%3;
-    }
-    else{
-        if((ei-mid)%2 == 0) return (2+y)%3;
-        else return (1+y)%3;
-    }
+    return (x+y)%3;
 }
 
-void update(int *tree, string &input, int si, int ei, int id, int key){
+void update(int *tree, int *input, int si, int ei, int id, int key){
     if(si == ei){
-        if(input[si] == '0'){
-            input[si] = '1';
-            tree[id] = 1;
-        }
-        // cout << si << " " << ei << " " << tree[id] << endl;
-        return;
-    }
-
-    int mid = (si+ei)/2;
-    if(key <= mid){
-        update(tree, input, si, mid, 2*id, key);
+        input[key] = 1;
+        tree[id] = 1;
     }
     else{
-        update(tree, input, mid+1, ei, 2*id+1, key);
-    }
+        int mid = (si+ei)/2;
+        if(si <= key && mid >= key) update(tree, input, si, mid, 2*id, key);
+        else update(tree, input, mid+1, ei, 2*id+1, key);
 
-    if(tree[2*id] == 0) tree[id] = tree[2*id+1];
-    else if(tree[2*id] == 1){
-        if((ei-mid)%2 == 0) tree[id] = (1+tree[2*id+1])%3;
-        else tree[id] = (2+tree[2*id+1])%3;
+        tree[id] = (power[ei-mid]*tree[2*id] + tree[2*id+1])%3;
     }
-    else{
-        if((ei-mid)%2 == 0) tree[id] = (2+tree[2*id+1])%3;
-        else tree[id] = (1+tree[2*id+1])%3;
-    }
-
-    // cout << si << " " << ei << " " << tree[id] << endl;
 }
 
 int main(){
+    buildPower();
+
     int n;
-    cin >> n;
+    scanf("%d", &n);
 
     string s;
     cin >> s;
+    int *input = new int[n];
+    for(int i = 0; i < n; i++) input[i] = s[i]-'0';
 
     int *tree = new int[4*n];
-    buildTree(tree, s, 0, n-1, 1);
+    buildTree(tree, input, 0, n-1, 1);
 
     int q, type, key, left, right;
-    cin >> q;
+    scanf("%d", &q);
     while(q--){
-        cin >> type;
+        scanf("%d", &type);
         if(type == 0){
-            cin >> left >> right;
-            cout << query(tree, 0, n-1, 1, left, right) << endl;
+            scanf("%d%d", &left, &right);
+            printf("%d\n", query(tree, 0, n-1, 1, left, right));
         }
         else{
-            cin >> key;
-            update(tree, s, 0, n-1, 1, key);
+            scanf("%d", &key);
+            if(input[key] == 0) update(tree, input, 0, n-1, 1, key);
         }
     }
 }
